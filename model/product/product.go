@@ -11,6 +11,10 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+type DeleteRequest struct {
+	ID int `json:"id"`
+}
+
 func GetProducts(ctx *fiber.Ctx) error {
 	var product []product.Product
 	connect.DB.Find(&product)
@@ -63,20 +67,20 @@ func UpdateProduct(ctx *fiber.Ctx) error {
 }
 
 func DeleteProduct(ctx *fiber.Ctx) error {
-	id := ctx.Params("id")
 
-	return ctx.JSON(id)
-	// var product product.Product
-	// result := connect.DB.Find(&product, id)
+	request := new(DeleteRequest)
+	var product product.Product
 
-	// if result.Error != nil {
-	// if result.Error == gorm.ErrRecordNotFound {
-	// 	fmt.Println("Record not found")
-	// } else {
-	// 	fmt.Println("Error occurred:", result.Error)
-	// }
-	// }
+	if err := ctx.BodyParser(request); err != nil {
+		return err
+	}
 
-	// connect.DB.Delete(&product)
-	// return ctx.SendString("Product " + product.Name + " deleted successfully.")
+	result := connect.DB.First(&product, request)
+
+	if result.Error != nil {
+		return ctx.SendString("Error :" + result.Error.Error())
+	}
+
+	connect.DB.Delete(&product)
+	return ctx.SendString("Product " + product.Name + " deleted successfully.")
 }

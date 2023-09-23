@@ -30,5 +30,5 @@ func Initialize(router *fiber.App) {
 	router.Post("product-create", middleware.ValidateToken, product.Create)
 	router.Get("product-list", middleware.ValidateToken, product.GetProducts)
 	router.Post("product-update", middleware.ValidateToken, product.UpdateProduct)
-	router.Post("product-delete", middleware.ValidateToken, product.DeleteProduct)
+	router.Delete("product-delete", middleware.ValidateToken, product.DeleteProduct)
 }
