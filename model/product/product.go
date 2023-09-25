@@ -9,6 +9,7 @@ import (
 
 	"github.com/go-sql-driver/mysql"
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
 func GetProducts(ctx *fiber.Ctx) error {
@@ -62,21 +63,30 @@ func UpdateProduct(ctx *fiber.Ctx) error {
 	return ctx.JSON(&product)
 }
 
+type DeleteRequest struct {
+	ID int `json:"id"`
+}
+
 func DeleteProduct(ctx *fiber.Ctx) error {
-	id := ctx.Params("id")
+	// id := ctx.Params("id")
 
-	return ctx.JSON(id)
-	// var product product.Product
-	// result := connect.DB.Find(&product, id)
+	var request DeleteRequest
 
-	// if result.Error != nil {
-	// if result.Error == gorm.ErrRecordNotFound {
-	// 	fmt.Println("Record not found")
-	// } else {
-	// 	fmt.Println("Error occurred:", result.Error)
-	// }
-	// }
+	if err := ctx.BodyParser(&request); err != nil {
+		return err
+	}
 
-	// connect.DB.Delete(&product)
-	// return ctx.SendString("Product " + product.Name + " deleted successfully.")
+	var product product.Product
+	result := connect.DB.First(&product, request)
+
+	if result.Error != nil {
+		if result.Error == gorm.ErrRecordNotFound {
+			return ctx.SendString(result.Error.Error())
+		} else {
+			return ctx.SendString(result.Error.Error())
+		}
+	}
+
+	connect.DB.Delete(&product)
+	return ctx.SendString("Product " + product.Name + " deleted successfully.")
 }
