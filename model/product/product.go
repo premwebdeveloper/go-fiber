@@ -7,6 +7,7 @@ import (
 	connect "web/database"
 	"web/migration/product"
 
+	"github.com/go-playground/validator/v10"
 	"github.com/go-sql-driver/mysql"
 	"github.com/gofiber/fiber/v2"
 )
@@ -14,6 +15,8 @@ import (
 type DeleteRequest struct {
 	ID int `json:"id"`
 }
+
+var validate *validator.Validate
 
 func GetProducts(ctx *fiber.Ctx) error {
 	var product []product.Product
@@ -31,6 +34,23 @@ func Create(ctx *fiber.Ctx) error {
 	if err := ctx.BodyParser(product); err != nil {
 		return ctx.Status(500).SendString(err.Error())
 	}
+
+	validate = validator.New()
+
+	// Validate form data
+	if err := validate.Struct(product); err != nil {
+		// Map field-level errors to a map
+		errors := make(map[string]string)
+		for _, err := range err.(validator.ValidationErrors) {
+			errors[err.Field()] = fmt.Sprintf("%s is %s , Required %s", err.Field(), err.Tag(), err.Value())
+		}
+
+		return ctx.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"message": "Validation failed",
+			"errors":  errors,
+		})
+	}
+
 	result := connect.DB.Create(&product)
 
 	if result.Error != nil {

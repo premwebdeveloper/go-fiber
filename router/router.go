@@ -12,23 +12,29 @@ import (
 
 func Initialize(router *fiber.App) {
 
-	router.Get("/create", users.CreateUser)
-	router.Get("/users", users.GetUsers)
-	router.Get("/user/:id", users.GetUser)
-	router.Post("/user", users.SaveUser)
-	router.Post("/user-delete/:id", users.DeleteUser)
-	router.Put("/user/:id", users.UpdateUser)
+	api := router.Group("/api")
+	user := api.Group("/users")
 
-	router.Get("/employees", employees.GetEmployees)
-	router.Get("/create-employee", employees.CreateEmployee)
-	router.Post("/store-employee", employees.StoreEmployee)
-	router.Post("/delete-employee/:id", employees.DeleteEmployee)
+	user.Get("/create", users.CreateUser)
+	user.Get("/users", users.GetUsers)
+	user.Get("/user/:id", users.GetUser)
+	user.Post("/user", users.SaveUser)
+	user.Post("/user-delete/:id", users.DeleteUser)
+	user.Put("/user/:id", users.UpdateUser)
 
-	router.Post("/login", auth.Login)
+	employee := api.Group("/employees")
+	employee.Get("/employees", employees.GetEmployees)
+	employee.Get("/create-employee", employees.CreateEmployee)
+	employee.Post("/store-employee", employees.StoreEmployee)
+	employee.Post("/delete-employee/:id", employees.DeleteEmployee)
 
-	router.Get("/products", product.GetProducts)
-	router.Post("product-create", middleware.ValidateToken, product.Create)
-	router.Get("product-list", middleware.ValidateToken, product.GetProducts)
-	router.Post("product-update", middleware.ValidateToken, product.UpdateProduct)
-	router.Delete("product-delete", middleware.ValidateToken, product.DeleteProduct)
+	authentic := api.Group("/authentic")
+	authentic.Post("/login", auth.Login)
+
+	products := api.Group("/products")
+	products.Get("/products", product.GetProducts)
+	products.Post("product-create", middleware.ValidateToken, product.Create)
+	products.Get("product-list", middleware.ValidateToken, product.GetProducts)
+	products.Post("product-update", middleware.ValidateToken, product.UpdateProduct)
+	products.Delete("product-delete", middleware.ValidateToken, product.DeleteProduct)
 }
